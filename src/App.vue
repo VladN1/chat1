@@ -1,60 +1,65 @@
 <template>
-  <v-app>
-    <v-app-bar
-      app
-      color="primary"
-      dark
-    >
-      <div class="d-flex align-center">
-        <v-img
-          alt="Vuetify Logo"
-          class="shrink mr-2"
-          contain
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
-          transition="scale-transition"
-          width="40"
-        />
-
-        <v-img
-          alt="Vuetify Name"
-          class="shrink mt-1 hidden-sm-and-down"
-          contain
-          min-width="100"
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-name-dark.png"
-          width="100"
-        />
-      </div>
-
-      <v-spacer></v-spacer>
-
-      <v-btn
-        href="https://github.com/vuetifyjs/vuetify/releases/latest"
-        target="_blank"
-        text
-      >
-        <span class="mr-2">Latest Release</span>
-        <v-icon>mdi-open-in-new</v-icon>
-      </v-btn>
-    </v-app-bar>
-
-    <v-main>
-      <HelloWorld/>
-    </v-main>
-  </v-app>
+  <div id="app">
+    <Container>
+      <ChatWindow v-on:sendMessage="send">
+        <ChatMessage 
+          v-for="(message, i) in messages" 
+          v-bind:key="i"
+          
+          v-bind:username="message.author" 
+          v-bind:datetime="message.datetime" 
+        >
+          {{message.text}}
+        </ChatMessage>
+      </ChatWindow>
+    </Container>
+  </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld';
-
+import ChatMessage from "./components/ChatMessage.vue";
+import Container from "./components/Container.vue";
+import ChatWindow from "./components/ChatWindow";
 export default {
-  name: 'App',
-
+  name: "App",
   components: {
-    HelloWorld,
+    Container,
+    ChatMessage,
+    ChatWindow,
   },
-
-  data: () => ({
-    //
-  }),
+  data() {
+    return {
+      messages: []
+    }
+  },
+  methods: {
+    getMessages(){
+      this.axios.get('http://37.77.104.246/api/chat/getmessages.php')
+        .then( (resp)=>{
+          this.messages = resp.data
+        } )
+    },
+    send(obj){
+      this.axios({
+        method: 'POST',
+        url: 'http://37.77.104.246/api/chat/sendmessage.php',
+        data: obj
+      }).then(
+        ()=>{
+          this.getMessages();
+        }
+      )
+    }
+  },
+  mounted(){
+    this.getMessages();
+  }
 };
 </script>
+
+<style>
+body {
+  margin: 0;
+  background-color: #f9f9fa;
+}
+</style>
